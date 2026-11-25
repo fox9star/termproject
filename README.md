@@ -7,6 +7,7 @@
 ## 📄 문서 목록
 - **[AI 서비스 기획서 전문 — Markdown (`smart_factory_service_proposal.md`)](./smart_factory_service_proposal.md)**
 - **[AI 서비스 기획서 전문 — HTML / PDF 인쇄용 (`smart_factory_service_proposal.html`)](./smart_factory_service_proposal.html)**
+- **[발표 자료 슬라이드 덱 — 16:9 HTML PT & PDF 변환용 (`smart_factory_presentation_slides.html`)](./smart_factory_presentation_slides.html)**
 
 ---
 

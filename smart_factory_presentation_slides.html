@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FactoryGuard AI — AI Smart Factory 발표 슬라이드</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --slide-bg: #ffffff;
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --accent-border: #bfdbfe;
+      --cyan: #0284c7;
+      --teal: #0d9488;
+      --teal-soft: #f0fdfa;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --purple: #7c3aed;
+      --purple-soft: #f5f3ff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Stage Container */
+    .deck-viewport {
+      width: 100vw;
+      height: calc(100vh - 58px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 28px;
+      position: relative;
+    }
+
+    /* 16:9 Fixed Coordinate Slide scaled via JS */
+    .slide-canvas {
+      width: 1280px;
+      height: 720px;
+      position: relative;
+      transform-origin: center center;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--slide-bg);
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      position: absolute;
+      inset: 0;
+      padding: 48px 60px 54px 60px;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--slide-bg);
+      opacity: 0;
+      transition: opacity 0.22s ease;
+    }
+
+    .slide.active {
+      display: flex;
+      opacity: 1;
+      z-index: 2;
+    }
+
+    /* Cover Slide Theme */
+    .slide.slide-cover {
+      background: radial-gradient(circle at 88% 18%, rgba(56, 189, 248, 0.22) 0%, transparent 45%),
+                  radial-gradient(circle at 15% 85%, rgba(37, 99, 235, 0.28) 0%, transparent 50%),
+                  linear-gradient(135deg, #090f1f 0%, #0f172a 55%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 64px 72px;
+    }
+
+    /* Slide Header */
+    .slide-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
+      margin-bottom: 22px;
+      flex-shrink: 0;
+    }
+
+    .slide-kicker {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slide-title {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.6px;
+      line-height: 1.25;
+    }
+
+    .slide-page-badge {
+      background: #f1f5f9;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 999px;
+    }
+
+    /* Slide Body */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      overflow: hidden;
+    }
+
+    /* Slide Footer */
+    .slide-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #94a3b8;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 12px;
+      margin-top: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Layout Helpers */
+    .cols-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      height: 100%;
+    }
+
+    .cols-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .cols-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card.blue {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+    }
+
+    .card.teal {
+      background: var(--teal-soft);
+      border-color: #99f6e4;
+    }
+
+    .card.amber {
+      background: var(--amber-soft);
+      border-color: #fde68a;
+    }
+
+    .card.purple {
+      background: var(--purple-soft);
+      border-color: #ddd6fe;
+    }
+
+    .card.dark {
+      background: #0f172a;
+      border-color: #1e293b;
+      color: #f8fafc;
+    }
+
+    .card-tag {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent);
+    }
+
+    .card.teal .card-tag { color: var(--teal); }
+    .card.amber .card-tag { color: var(--amber); }
+    .card.purple .card-tag { color: var(--purple); }
+    .card.dark .card-tag { color: #38bdf8; }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.3;
+    }
+
+    .card.dark .card-title {
+      color: #ffffff;
+    }
+
+    .card p, .card li {
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    .card.dark p, .card.dark li {
+      color: #cbd5e1;
+    }
+
+    .card ul {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .stat-big {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+
+    /* Tables in Slides */
+    table.slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    table.slide-table th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 13.5px;
+    }
+
+    table.slide-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      line-height: 1.45;
+      background: #ffffff;
+    }
+
+    table.slide-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    table.slide-table td.hi {
+      background: #eff6ff !important;
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+
+    .chip {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-family: "Consolas", monospace;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin: 2px 3px 2px 0;
+    }
+
+    .chip.blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    /* Pipeline Banner */
+    .pipeline-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .pipe-box {
+      background: #0f172a;
+      color: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      border-top: 4px solid #38bdf8;
+    }
+
+    .pipe-box:nth-child(2) { border-top-color: #2dd4bf; }
+    .pipe-box:nth-child(3) { border-top-color: #fbbf24; }
+    .pipe-box:nth-child(4) { border-top-color: #a78bfa; }
+
+    .pipe-step {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .pipe-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .pipe-desc {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-panel {
+      position: fixed;
+      bottom: 66px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(920px, 92vw);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 22px;
+      z-index: 50;
+      display: none;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+    }
+
+    .notes-panel.open {
+      display: block;
+    }
+
+    .notes-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .notes-content {
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    /* Bottom Control Bar */
+    .control-bar {
+      height: 58px;
+      background: #0f172a;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      color: #cbd5e1;
+      position: relative;
+      z-index: 60;
+    }
+
+    .progress-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      width: 10%;
+      transition: width 0.2s ease;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ctrl-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .ctrl-btn.primary:hover {
+      background: #1d4ed8;
+    }
+
+    .slide-select {
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Print All Slides as 16:9 PDF */
+    @media print {
+      @page {
+        size: 13.333in 7.5in;
+        margin: 0;
+      }
+      html, body {
+        width: 1280px;
+        height: auto;
+        overflow: visible !important;
+        background: #fff;
+      }
+      .control-bar, .notes-panel {
+        display: none !important;
+      }
+      .deck-viewport {
+        width: 1280px;
+        height: auto;
+        padding: 0;
+        display: block;
+      }
+      .slide-canvas {
+        width: 1280px;
+        height: auto;
+        transform: none !important;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
+      }
+      .slide {
+        position: relative !important;
+        display: flex !important;
+        opacity: 1 !important;
+        width: 1280px !important;
+        height: 720px !important;
+        page-break-after: always;
+        break-after: page;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-viewport">
+    <div class="slide-canvas" id="slideCanvas">
+
+      <!-- SLIDE 1: COVER -->
+      <section class="slide slide-cover active" data-notes="안녕하십니까. AI Smart Factory 도메인 발표를 맡은 팀입니다. 저희가 제안하는 서비스는 멀티모달 센서 데이터와 설명 가능한 AI, 그리고 RAG 기술을 결합해 중소 제조 현장의 돌발 설비 고장을 막고 즉각적인 정비 가이드를 제공하는 'FactoryGuard AI'입니다.">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:10px;">
+            <span style="background:#2563eb; color:#fff; font-weight:800; font-size:13px; padding:6px 14px; border-radius:999px;">AI SMART FACTORY</span>
+            <span style="background:rgba(255,255,255,0.12); color:#e2e8f0; font-weight:600; font-size:13px; padding:6px 14px; border-radius:999px;">코디세이 7대 도메인 아이디어톤</span>
+          </div>
+          <span style="color:#94a3b8; font-size:14px; font-weight:600;">Final Project Service Proposal</span>
+        </div>
+
+        <div style="margin: auto 0;">
+          <div style="color:#38bdf8; font-weight:800; font-size:18px; letter-spacing:0.5px; margin-bottom:14px;">
+            PREDICTIVE MAINTENANCE &amp; RAG COPILOT PLATFORM
+          </div>
+          <h1 style="font-size:52px; font-weight:800; line-height:1.22; letter-spacing:-1px; margin-bottom:18px;">
+            FactoryGuard AI<br />
+            <span style="font-size:36px; font-weight:700; color:#cbd5e1;">중소 제조 설비 예지보전 및 지능형 정비 가이드</span>
+          </h1>
+          <p style="font-size:19px; color:#94a3b8; max-width:860px; line-height:1.6;">
+            진동·음향·온도·전류 멀티모달 시계열 AI로 <strong style="color:#fff;">설비 고장 전조 증상과 잔여 수명(RUL)을 사전 예측</strong>하고,<br />
+            <strong style="color:#38bdf8;">XAI 원인 분석</strong>과 <strong style="color:#38bdf8;">RAG 정비 매뉴얼 코파일럿</strong>으로 현장 조치를 자동화합니다.
+          </p>
+        </div>
+
+        <div class="cols-3" style="border-top:1px solid rgba(255,255,255,0.15); padding-top:26px;">
+          <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px 20px;">
+            <div style="font-size:28px; font-weight:800; color:#38bdf8;">30 ~ 50% ↓</div>
+            <div style="font-size:13.5px; color:#cbd5e1; margin-top:4px;">비계획 설비 다운타임(Downtime) 감축</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px 20px;">
+            <div style="font-size:28px; font-weight:800; color:#2dd4bf;">40% 이상 ↓</div>
+            <div style="font-size:13.5px; color:#cbd5e1; margin-top:4px;">평균 정비 의사결정 및 수리 시간(MTTR) 단축</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px 20px;">
+            <div style="font-size:28px; font-weight:800; color:#fbbf24;">20 ~ 25% ↓</div>
+            <div style="font-size:13.5px; color:#cbd5e1; margin-top:4px;">과잉 예방정비 및 예비 부품 재고 비용 절감</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: 1. 문제 정의 (산업 배경 및 현황) -->
+      <section class="slide" data-notes="제조 현장이 겪고 있는 가장 큰 문제는 설비 돌발 고장입니다. 사후 보전은 라인 중단 손실이 막대하고, 일정 주기마다 부품을 갈아치우는 예방 보전은 멀쩡한 부품을 버리는 과잉 정비 비용을 낳습니다. 게다가 숙련 보전 기술자의 고령화로 이상 징후를 판독할 인력이 부족합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">01 · PROBLEM DEFINITION</div>
+            <h2 class="slide-title">산업 현황 및 문제 배경: 왜 중소 제조 설비 보전인가?</h2>
+          </div>
+          <span class="slide-page-badge">Slide 02 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-3">
+            <div class="card blue">
+              <span class="card-tag">ISSUE 01 · 막대한 다운타임 손실</span>
+              <div class="card-title">설비 돌발 고장으로 인한<br />생산 라인 전면 중단</div>
+              <div class="stat-big" style="margin:6px 0;">수천만 원 / 시간</div>
+              <ul>
+                <li>모터·펌프·프레스·CNC 등 핵심 회전 설비 1대 고장 시 전체 공정 연쇄 정지</li>
+                <li>중소·중견 제조사의 납기 지연 페널티 및 긴급 수리 비용 급증</li>
+              </ul>
+            </div>
+
+            <div class="card amber">
+              <span class="card-tag">ISSUE 02 · 기존 보전 방식의 한계</span>
+              <div class="card-title">사후 보전(BM)의 위험성과<br />주기 예방 보전(TBM)의 낭비</div>
+              <div class="stat-big" style="color:var(--amber); margin:6px 0;">20 ~ 30% 낭비</div>
+              <ul>
+                <li><strong>사후 보전</strong>: 고장 후 수리로 부품 연쇄 파손 및 안전사고 위험</li>
+                <li><strong>예방 보전(TBM)</strong>: 수명이 남은 부품을 일괄 교체하는 과잉 정비 발생</li>
+              </ul>
+            </div>
+
+            <div class="card teal">
+              <span class="card-tag">ISSUE 03 · 현장 기술 인력난</span>
+              <div class="card-title">숙련 보전 엔지니어 은퇴 및<br />비숙련 작업자의 대응 한계</div>
+              <div class="stat-big" style="color:var(--teal); margin:6px 0;">노하우 단절</div>
+              <ul>
+                <li>미세한 이상 소음·진동 변화를 감지하던 베테랑 기술자 고령화</li>
+                <li>신규 작업자는 경보가 울려도 원인과 매뉴얼 조치법을 즉시 찾기 어려움</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card dark" style="padding:18px 24px; flex-direction:row; align-items:center; justify-content:space-between;">
+            <div>
+              <span style="color:#38bdf8; font-weight:800; font-size:13px;">CORE INSIGHT</span>
+              <div style="font-size:17px; font-weight:700; margin-top:2px;">
+                "단순히 경보만 울리는 관제를 넘어, <span style="color:#38bdf8;">언제·왜 고장 나는지 예측</span>하고 <span style="color:#2dd4bf;">어떻게 고칠지 알려주는 AI</span>가 필요하다!"
+              </div>
+            </div>
+            <span class="chip blue" style="font-size:13.5px; padding:6px 12px;">TBM(주기 정비) ➔ CBM/PdM(AI 예지보전) 전환</span>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>1. 문제 정의 (산업 배경 및 현황)</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: 해결하고자 하는 문제 & 주제 선택 이유 -->
+      <section class="slide" data-notes="이에 저희는 3가지 핵심 문제를 해결하고자 합니다. 첫째 멀티모달 센서로 잔여 수명을 예측하고, 둘째 XAI로 고장 원인을 명확히 설명하며, 셋째 RAG로 정비 매뉴얼 가이드를 즉시 제공합니다. 공인 데이터셋이 풍부해 실제 구현 가능성도 매우 높습니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">01 &amp; 02 · CORE OBJECTIVES &amp; RATIONALE</div>
+            <h2 class="slide-title">해결하고자 하는 핵심 문제 &amp; 주제 선택 이유</h2>
+          </div>
+          <span class="slide-page-badge">Slide 03 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-2">
+            <div class="card" style="justify-content:space-between;">
+              <div>
+                <span class="card-tag">PROBLEMS TO SOLVE</span>
+                <div class="card-title" style="margin-top:4px; margin-bottom:14px;">우리가 해결할 3대 핵심 과제</div>
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                  <div style="background:#fff; border-left:4px solid var(--accent); padding:12px 16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                    <strong style="color:var(--primary); font-size:15.5px;">① 멀티모달 센서 기반 사전 고장 &amp; 잔여 수명(RUL) 예측</strong>
+                    <p style="margin-top:4px; font-size:13.8px;">진동·음향·온도·전류 시계열의 미세 이상 패턴을 포착해 고장 도달 시점을 사전 예보</p>
+                  </div>
+                  <div style="background:#fff; border-left:4px solid var(--teal); padding:12px 16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                    <strong style="color:var(--primary); font-size:15.5px;">② 고장 원인 자동 진단 및 설명 가능성(XAI) 확보</strong>
+                    <p style="margin-top:4px; font-size:13.8px;">베어링 마모, 축 정렬 불량, 과열 등 고장 유형을 분류하고 판단 근거 센서·주파수 제시</p>
+                  </div>
+                  <div style="background:#fff; border-left:4px solid var(--amber); padding:12px 16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                    <strong style="color:var(--primary); font-size:15.5px;">③ 비숙련 작업자를 위한 RAG 기반 정비 가이드</strong>
+                    <p style="margin-top:4px; font-size:13.8px;">설비 매뉴얼과 과거 수리 이력을 기반으로 점검 절차와 조치 체크리스트를 즉각 제공</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card blue" style="justify-content:space-between;">
+              <div>
+                <span class="card-tag">WHY THIS TOPIC?</span>
+                <div class="card-title" style="margin-top:4px; margin-bottom:14px;">주제 선택 이유 및 실현 가능성</div>
+                <ul style="gap:12px;">
+                  <li>
+                    <strong>스마트 팩토리 내 가장 명확한 ROI(투자 효용)</strong><br />
+                    설비 다운타임 1회만 예방해도 솔루션 도입 비용을 회수할 만큼 현장 수요가 확실함
+                  </li>
+                  <li>
+                    <strong>핵심 AI 기술의 종합적·유기적 적용</strong><br />
+                    비지도 시계열 이상 탐지 + 주파수 도메인 딥러닝 + XAI(SHAP) + LLM/RAG까지 AI 핵심 파이프라인을 모두 경험 가능
+                  </li>
+                  <li>
+                    <strong>풍부한 공인 오픈 데이터셋으로 높은 구현성</strong><br />
+                    실제 파이널 프로젝트 개발 시 즉시 활용 가능한 검증된 벤치마크 데이터 보유:
+                    <div style="margin-top:8px;">
+                      <span class="chip blue">NASA Bearing Dataset</span>
+                      <span class="chip blue">CWRU 베어링 데이터</span>
+                      <span class="chip blue">MIMII 산업 기계 음향</span>
+                      <span class="chip blue">AI Hub 제조 설비 데이터</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>2. 주제 선택 이유</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: 3. 타겟 사용자 -->
+      <section class="slide" data-notes="타겟 사용자는 고가의 대기업 솔루션 도입이 어려운 중소·중견 제조기업의 현장 보전팀과 생산 관리자입니다. 현장 작업자에게는 오경보 없는 명확한 원인과 수리 가이드를, 관리자에게는 잔여 수명 기반의 계획 정비 스케줄링을 제공합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">03 · TARGET USERS &amp; NEEDS</div>
+            <h2 class="slide-title">타겟 사용자 정의 및 니즈(Needs) 분석</h2>
+          </div>
+          <span class="slide-page-badge">Slide 04 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-2">
+            <div class="card blue">
+              <span class="card-tag">PRIMARY TARGET · 주 타겟</span>
+              <div class="card-title">중소·중견 제조기업 설비 보전팀 &amp; 현장 작업자</div>
+              <p style="font-size:14px; color:#475569; margin-bottom:6px;">설비 이상 알람을 가장 먼저 확인하고 현장에서 직접 점검·수리를 수행하는 실무자</p>
+              <div style="background:#fff; border-radius:10px; padding:14px 16px; border:1px solid var(--accent-border);">
+                <div style="font-weight:800; font-size:13.5px; color:#e11d48; margin-bottom:6px;">😣 주요 고충 (Pain Points)</div>
+                <ul style="font-size:13.5px; margin-bottom:12px;">
+                  <li>숙련도 부족으로 초기 이상음·진동 변화 판독이 어려움</li>
+                  <li>단순 임계치 알람의 잦은 오경보(False Alarm)로 인한 피로감</li>
+                  <li>고장 시 수백 페이지의 설비 매뉴얼에서 조치법을 찾기 번거로움</li>
+                </ul>
+                <div style="font-weight:800; font-size:13.5px; color:var(--accent); margin-bottom:6px;">💡 핵심 니즈 (User Needs)</div>
+                <ul style="font-size:13.5px;">
+                  <li>직관적인 설비 건전성 신호등 UI (정상 / 주의 / 위험)</li>
+                  <li><strong>"어느 부위를 왜 점검해야 하는지"</strong> 설명해 주는 XAI 진단 근거</li>
+                  <li>알람과 동시에 팝업되는 <strong>단계별 정비 매뉴얼 &amp; 공구 체크리스트</strong></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card teal">
+              <span class="card-tag">SECONDARY TARGET · 부 타겟</span>
+              <div class="card-title">생산관리 총괄(공장장) &amp; 안전관리 책임자</div>
+              <p style="font-size:14px; color:#475569; margin-bottom:6px;">공장 전체 가동률(OEE), 납기 준수, 정비 예산 및 산업안전을 총괄하는 의사결정자</p>
+              <div style="background:#fff; border-radius:10px; padding:14px 16px; border:1px solid #99f6e4;">
+                <div style="font-weight:800; font-size:13.5px; color:#e11d48; margin-bottom:6px;">😣 주요 고충 (Pain Points)</div>
+                <ul style="font-size:13.5px; margin-bottom:12px;">
+                  <li>돌발 설비 정지로 인한 납기 지연 및 야간/주말 긴급 수리 호출</li>
+                  <li>예비 부품 과다 재고 비용 또는 부품 부재로 인한 장기 가동 중단</li>
+                  <li>수억 원대 대기업 스마트 팩토리 솔루션의 높은 도입 장벽</li>
+                </ul>
+                <div style="font-weight:800; font-size:13.5px; color:var(--teal); margin-bottom:6px;">💡 핵심 니즈 (User Needs)</div>
+                <ul style="font-size:13.5px;">
+                  <li>설비별 <strong>잔여 수명(RUL) 예측 기반 비가동 시간대 계획 정비</strong> 수립</li>
+                  <li>주간/월간 설비 효율(MTBF, MTTR) 자동 리포트 및 적시 부품 발주</li>
+                  <li>기존 설비에 센서만 부착해 바로 쓰는 합리적 비용의 경량 SaaS</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>3. 타겟 사용자 및 니즈 분석</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: 4. 서비스 개요 및 차별점 -->
+      <section class="slide" data-notes="FactoryGuard AI는 실시간 건전성 스코어링, 잔여 수명 및 고장 분류, SHAP 기반 판단 근거 시각화, 그리고 RAG 정비 코파일럿의 4대 핵심 기능을 제공합니다. 기존 모니터링 시스템이 단순 사후 경보에 그쳤다면, 저희는 원인 진단부터 수리 가이드까지 원스톱으로 연결합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">04 · SERVICE OVERVIEW &amp; DIFFERENTIATION</div>
+            <h2 class="slide-title">FactoryGuard AI 핵심 기능 및 기존 서비스 대비 차별점</h2>
+          </div>
+          <span class="slide-page-badge">Slide 05 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-4">
+            <div class="card blue" style="padding:16px 18px;">
+              <span class="card-tag">FEATURE 01</span>
+              <div class="card-title" style="font-size:16.5px;">실시간 건전성 지수(HI) &amp; 이상 탐지</div>
+              <p style="font-size:13.2px;">다변량 센서 기반 설비별 건전성 점수(0~100) 실시간 산출 및 미세 이상 조기 포착</p>
+            </div>
+            <div class="card teal" style="padding:16px 18px;">
+              <span class="card-tag">FEATURE 02</span>
+              <div class="card-title" style="font-size:16.5px;">잔여 수명(RUL) 예측 &amp; 고장 분류</div>
+              <p style="font-size:13.2px;"><em>"72시간 내 베어링 내륜 마모 임계 도달"</em> 등 예상 고장 시점과 원인별 확률 제시</p>
+            </div>
+            <div class="card amber" style="padding:16px 18px;">
+              <span class="card-tag">FEATURE 03</span>
+              <div class="card-title" style="font-size:16.5px;">XAI 기반 고장 판단 근거 시각화</div>
+              <p style="font-size:13.2px;">SHAP 분석으로 이상 점수를 유발한 핵심 센서 채널과 주파수 대역 기여도 제시</p>
+            </div>
+            <div class="card purple" style="padding:16px 18px;">
+              <span class="card-tag">FEATURE 04</span>
+              <div class="card-title" style="font-size:16.5px;">RAG 기반 AI 정비 코파일럿</div>
+              <p style="font-size:13.2px;">설비 매뉴얼·정비 이력 DB를 검색해 필요 공구, 부품 번호, 수리 절차를 대화형 안내</p>
+            </div>
+          </div>
+
+          <table class="slide-table">
+            <thead>
+              <tr>
+                <th style="width:16%;">비교 항목</th>
+                <th style="width:26%;">기존 설비 모니터링 (SCADA/CMS)</th>
+                <th style="width:26%;">기존 대기업 예지보전 솔루션</th>
+                <th style="width:32%; background:#2563eb;">FactoryGuard AI (제안 서비스)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>이상 탐지 방식</strong></td>
+                <td>고정 임계치(Threshold) 기반 단순 경보</td>
+                <td>고가 전용 장비 기반 복합 분석</td>
+                <td class="hi">비지도 시계열 AI 기반 미세 전조 증상 사전 포착</td>
+              </tr>
+              <tr>
+                <td><strong>오경보 및 설명력</strong></td>
+                <td>잦은 오경보, 구체적 고장 원인 파악 불가</td>
+                <td>블랙박스 AI 모델로 현장 작업자 납득 어려움</td>
+                <td class="hi">XAI(SHAP) 기반 이상 원인 센서·주파수 근거 제시</td>
+              </tr>
+              <tr>
+                <td><strong>사후 조치 연결</strong></td>
+                <td>경보만 발생 (조치는 숙련공 경험에 의존)</td>
+                <td>별도 데이터 분석가 및 전문 컨설팅 필요</td>
+                <td class="hi">RAG 코파일럿이 매뉴얼 기반 즉각적 정비 가이드 제공</td>
+              </tr>
+              <tr>
+                <td><strong>도입 비용·장벽</strong></td>
+                <td>낮음 (단순 모니터링으로 기능 한계 명확)</td>
+                <td>매우 높음 (수억 원대 초기 구축 비용)</td>
+                <td class="hi">기존 설비에 IoT 센서 부착만으로 도입하는 경량 SaaS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>4. 서비스 개요 및 차별점</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: 5. AI 기술 적용 방안 -->
+      <section class="slide" data-notes="AI 기술 적용 방안입니다. 회전 설비 결함은 주파수 대역에서 가장 먼저 나타나므로 FFT/STFT 변환을 수행하고, 고장 데이터가 희소한 현장 특성을 고려해 정상 데이터만으로 학습하는 LSTM-Autoencoder를 이상 탐지에 사용합니다. 이후 1D-CNN과 LightGBM, Bi-LSTM으로 고장 원인과 잔여 수명을 예측하고 SHAP와 RAG로 연결합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">05 · AI TECHNOLOGY PIPELINE</div>
+            <h2 class="slide-title">AI 기술 적용 방안 및 기술 선택 이유</h2>
+          </div>
+          <span class="slide-page-badge">Slide 06 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="pipeline-flow">
+            <div class="pipe-box">
+              <div class="pipe-step">STEP 1 · 신호 전처리</div>
+              <div class="pipe-title">FFT / STFT 변환</div>
+              <div class="pipe-desc">시간 축 진동·음향 원시 파형을 주파수 스펙트로그램 및 통계 피처(RMS, 첨도)로 변환</div>
+            </div>
+            <div class="pipe-box">
+              <div class="pipe-step">STEP 2 · 비지도 이상 탐지</div>
+              <div class="pipe-title">LSTM-Autoencoder</div>
+              <div class="pipe-desc">정상 운전 패턴만 학습 후 복원 오차(Reconstruction Error)로 건전성 지수(HI) 산출</div>
+            </div>
+            <div class="pipe-box">
+              <div class="pipe-step">STEP 3 · 고장 분류 &amp; RUL</div>
+              <div class="pipe-title">1D-CNN + Bi-LSTM</div>
+              <div class="pipe-desc">스펙트로그램+LightGBM 앙상블로 고장 원인 분류 및 Bi-LSTM으로 잔여 수명 예측</div>
+            </div>
+            <div class="pipe-box">
+              <div class="pipe-step">STEP 4 · 설명 &amp; 정비 가이드</div>
+              <div class="pipe-title">SHAP + LLM RAG</div>
+              <div class="pipe-desc">SHAP으로 이상 기여 센서·주파수를 도출하고 Vector DB 매뉴얼 검색으로 조치 안내</div>
+            </div>
+          </div>
+
+          <table class="slide-table">
+            <thead>
+              <tr>
+                <th style="width:18%;">기능 모듈</th>
+                <th style="width:24%;">적용 AI / ML 기술</th>
+                <th style="width:58%;">기술 선택 이유 (Why This Tech?)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>신호 특징 추출</strong></td>
+                <td><span class="chip blue">FFT / STFT</span><span class="chip">Wavelet</span></td>
+                <td>회전 설비(베어링·기어) 결함은 시간 영역보다 <strong>특정 고유 주파수 대역의 에너지 변화</strong>에서 가장 먼저 포착됨</td>
+              </tr>
+              <tr>
+                <td><strong>실시간 이상 탐지</strong></td>
+                <td><span class="chip blue">LSTM-Autoencoder</span><span class="chip">Anomaly Transformer</span></td>
+                <td>실제 공장은 '고장 데이터'가 극히 희소(클래스 불균형)하므로 <strong>정상 데이터만으로 학습 가능한 비지도 학습</strong>이 필수적</td>
+              </tr>
+              <tr>
+                <td><strong>고장 분류 &amp; RUL</strong></td>
+                <td><span class="chip blue">1D-CNN + LightGBM</span><span class="chip blue">Bi-LSTM</span></td>
+                <td>딥러닝의 파형 특징 추출 능력(1D-CNN)과 부스팅 모델의 정형 피처 해석력·속도(LightGBM), 시계열 열화 추적(Bi-LSTM) 결합</td>
+              </tr>
+              <tr>
+                <td><strong>원인 설명 &amp; 가이드</strong></td>
+                <td><span class="chip blue">SHAP (XAI)</span><span class="chip blue">LLM + RAG</span></td>
+                <td>블랙박스 한계를 넘어 <strong>현장 엔지니어가 납득할 수 있는 수치적 근거(SHAP)</strong>와 <strong>환각 없는 매뉴얼 기반 정비 지침(RAG)</strong> 제공</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>5. AI 기술 적용 방안</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: 6. 예상 시스템 구성 -->
+      <section class="slide" data-notes="전체 시스템 아키텍처입니다. 설비 센서에서 수집된 데이터는 Edge Gateway에서 노이즈 제거와 FFT 변환을 거쳐 서버로 전송됩니다. 시계열 DB인 InfluxDB에 저장됨과 동시에 AI 추론 파이프라인이 건전성 지수와 고장 원인, SHAP 기여도를 계산하며, 이상 발생 시 RAG 코파일럿이 매뉴얼을 검색해 웹 대시보드와 모바일 앱으로 즉시 전송합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">06 · SYSTEM ARCHITECTURE</div>
+            <h2 class="slide-title">예상 시스템 구성 및 실시간 데이터 파이프라인</h2>
+          </div>
+          <span class="slide-page-badge">Slide 07 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-4">
+            <div class="card" style="border-top:4px solid #2563eb; padding:16px 18px;">
+              <span class="card-tag">1. EDGE LAYER</span>
+              <div class="card-title" style="font-size:17px;">제조 설비 &amp; 게이트웨이</div>
+              <ul style="font-size:13.2px;">
+                <li><strong>멀티모달 센서</strong>: 진동(가속도계), 음향, 온도, 전류</li>
+                <li><strong>Edge 전처리</strong>: 고주파 노이즈 필터링 및 슬라이딩 윈도우 FFT 변환</li>
+                <li><strong>실시간 스트리밍</strong>: MQTT / Kafka 브로커 전송</li>
+              </ul>
+            </div>
+
+            <div class="card" style="border-top:4px solid #0d9488; padding:16px 18px;">
+              <span class="card-tag" style="color:var(--teal);">2. BACKEND &amp; DB</span>
+              <div class="card-title" style="font-size:17px;">API 서버 &amp; 데이터 계층</div>
+              <ul style="font-size:13.2px;">
+                <li><strong>API 서버</strong>: FastAPI 비동기 수집·서빙</li>
+                <li><strong>InfluxDB</strong>: 대용량 시계열 센서 데이터 저장</li>
+                <li><strong>PostgreSQL</strong>: 설비 메타데이터·정비 이력</li>
+                <li><strong>Vector DB</strong>: Chroma/FAISS 매뉴얼 임베딩</li>
+              </ul>
+            </div>
+
+            <div class="card" style="border-top:4px solid #d97706; padding:16px 18px;">
+              <span class="card-tag" style="color:var(--amber);">3. AI ENGINE LAYER</span>
+              <div class="card-title" style="font-size:17px;">AI 추론 &amp; RAG 코파일럿</div>
+              <ul style="font-size:13.2px;">
+                <li><strong>Stage 1</strong>: LSTM-AE 이상 탐지 &amp; HI 산출</li>
+                <li><strong>Stage 2</strong>: 1D-CNN/LightGBM 고장 분류 &amp; Bi-LSTM 잔여 수명(RUL)</li>
+                <li><strong>XAI &amp; RAG</strong>: SHAP 원인 도출 → LLM 정비 가이드 생성</li>
+              </ul>
+            </div>
+
+            <div class="card" style="border-top:4px solid #7c3aed; padding:16px 18px;">
+              <span class="card-tag" style="color:var(--purple);">4. CLIENT UI LAYER</span>
+              <div class="card-title" style="font-size:17px;">관제 웹 &amp; 작업자 앱</div>
+              <ul style="font-size:13.2px;">
+                <li><strong>관제 대시보드(Web)</strong>: 라인별 설비 건전성, RUL 열화 곡선, SHAP 히트맵</li>
+                <li><strong>작업자 앱(Mobile)</strong>: 선제 고장 예보 푸시 알림 및 대화형 수리 체크리스트</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card dark" style="padding:16px 22px; font-family:'Consolas', monospace; font-size:12.5px; line-height:1.45;">
+<pre style="color:#e2e8f0; overflow:hidden;">[제조 설비 센서 (진동/음향/온도/전류)] ──▶ [Edge Gateway (노이즈 제거 / FFT 변환)] ──▶ [FastAPI / MQTT 수집 서버]
+                                                                                             │
+       ┌─────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────┐
+       ▼                                                                                     ▼                                         ▼
+[InfluxDB (시계열) / PostgreSQL] ◀──▶ [AI Engine: LSTM-AE 이상탐지 ➔ 1D-CNN/Bi-LSTM 고장·RUL 예측 ➔ SHAP 원인분석] ──▶ [RAG 코파일럿 (LLM + 매뉴얼 Vector DB)]
+                                                                                     │                                                 │
+                                                                                     └───────────────────────┬─────────────────────────┘
+                                                                                                             ▼
+                                                                              [현장 관제 웹 대시보드 (Web) &amp; 작업자 정비 가이드 앱 (Mobile)]</pre>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>6. 예상 시스템 구성</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 8: 7. 기대 효과 -->
+      <section class="slide" data-notes="기대 효과입니다. 현장 작업자 관점에서는 고장 원인과 수리 매뉴얼이 즉시 제공되어 평균 수리 시간을 40% 이상 단축하고 오경보 피로도를 줄입니다. 기업 비즈니스 관점에서는 비계획 다운타임을 30~50% 감축하고 과잉 정비 비용을 20% 이상 절감하며, 구독형 B2B SaaS로 확장이 가능합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">07 · EXPECTED IMPACT</div>
+            <h2 class="slide-title">서비스 도입 기대 효과 (사용자 관점 vs 비즈니스 관점)</h2>
+          </div>
+          <span class="slide-page-badge">Slide 08 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-2">
+            <div class="card teal" style="justify-content:space-between;">
+              <div>
+                <span class="card-tag">USER IMPACT · 현장 작업자 및 보전팀 관점</span>
+                <div class="card-title" style="margin-top:4px; margin-bottom:16px;">신속·정확한 정비 의사결정 및 산업안전 확보</div>
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid #99f6e4;">
+                    <div style="font-weight:800; color:var(--teal); font-size:16px;">⏱️ 평균 수리 시간(MTTR) 40% 이상 단축</div>
+                    <p style="font-size:13.8px; margin-top:4px;">XAI 고장 부위 특정 + RAG 매뉴얼 가이드로 비숙련 작업자도 헤매지 않고 표준화된 즉각 조치 수행</p>
+                  </div>
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid #99f6e4;">
+                    <div style="font-weight:800; color:var(--teal); font-size:16px;">🛡️ 오경보 피로도 해소 및 2차 안전사고 예방</div>
+                    <p style="font-size:13.8px; margin-top:4px;">다변량 패턴 학습으로 단순 임계치 오경보를 줄이고, 설비 과열·파손에 의한 현장 작업자 안전사고 사전 차단</p>
+                  </div>
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid #99f6e4;">
+                    <div style="font-weight:800; color:var(--teal); font-size:16px;">📚 숙련 엔지니어 노하우의 디지털 자산화</div>
+                    <p style="font-size:13.8px; margin-top:4px;">베테랑 기술자의 조치 이력이 Vector DB에 지속 축적되어 인력 교체 시에도 일관된 보전 품질 유지</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card blue" style="justify-content:space-between;">
+              <div>
+                <span class="card-tag">BUSINESS IMPACT · 제조 기업 및 비즈니스 관점</span>
+                <div class="card-title" style="margin-top:4px; margin-bottom:16px;">설비종합효율(OEE) 극대화 및 B2B SaaS 확장</div>
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid var(--accent-border);">
+                    <div style="font-weight:800; color:var(--accent); font-size:16px;">📉 비계획 설비 다운타임 30 ~ 50% 감축</div>
+                    <p style="font-size:13.8px; margin-top:4px;">돌발 정지를 사전에 막고 교대 시간·주말 등 비가동 시간대에 계획 정비를 수행하여 생산성 및 납기 신뢰도 향상</p>
+                  </div>
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid var(--accent-border);">
+                    <div style="font-weight:800; color:var(--accent); font-size:16px;">💰 유지보수 및 예비 부품 재고 비용 20 ~ 25% 절감</div>
+                    <p style="font-size:13.8px; margin-top:4px;">일괄 주기 교체(TBM) 대신 실제 상태 기반 정비(CBM)로 전환해 불필요한 부품 폐기와 재고 부담 최소화</p>
+                  </div>
+                  <div style="background:#fff; padding:14px 16px; border-radius:10px; border:1px solid var(--accent-border);">
+                    <div style="font-weight:800; color:var(--accent); font-size:16px;">🚀 구독형 B2B SaaS 및 산업 생태계 확장</div>
+                    <p style="font-size:13.8px; margin-top:4px;">설비 대수 기반 월 구독 모델을 통해 중소 제조사 진입 장벽을 낮추고, 부품 SCM·설비 보험 연계 비즈니스로 확장</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>7. 기대 효과</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: 8. 향후 발전 방향 (Roadmap) -->
+      <section class="slide" data-notes="향후 발전 로드맵입니다. 1단계에서는 공인 회전 설비 데이터셋을 활용해 이상 탐지·고장 분류 모델과 RAG 정비 코파일럿 MVP를 완성합니다. 2단계에서는 현장 설비별 전이 학습과 Edge AI 경량화를 적용하고, 3단계에서는 ERP/MES 자동 부품 발주 및 3D 디지털 트윈 공장으로 확장합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">08 · FUTURE ROADMAP</div>
+            <h2 class="slide-title">향후 발전 방향 및 단계별 확장 로드맵</h2>
+          </div>
+          <span class="slide-page-badge">Slide 09 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="cols-3">
+            <div class="card blue" style="border-top:5px solid var(--accent);">
+              <span class="card-tag">PHASE 01 · 단기 (Final Project MVP)</span>
+              <div class="card-title">핵심 AI 파이프라인 구현 및 오픈 데이터 검증</div>
+              <ul style="margin-top:8px;">
+                <li><strong>공인 데이터셋 기반 모델링</strong>: NASA/CWRU Bearing, MIMII 음향 데이터셋 기반 이상 탐지(LSTM-AE) 및 고장 분류 모델 구현</li>
+                <li><strong>XAI &amp; RAG 프로토타입</strong>: SHAP 센서·주파수 기여도 시각화 및 설비 매뉴얼 PDF 연동 RAG 챗봇 구축</li>
+                <li><strong>관제 웹 대시보드</strong>: 실시간 건전성 지수(HI) 및 알람 모니터링 UI 개발</li>
+              </ul>
+            </div>
+
+            <div class="card teal" style="border-top:5px solid var(--teal);">
+              <span class="card-tag">PHASE 02 · 중기 (현장 실증 &amp; 고도화)</span>
+              <div class="card-title">전이 학습 기반 현장 적응 및 Edge AI 경량화</div>
+              <ul style="margin-top:8px;">
+                <li><strong>소수 샷 전이 학습(Few-shot Adaptation)</strong>: 공장마다 다른 설비 사양에 소량의 정상 데이터만으로 빠르게 미세 조정하는 파이프라인</li>
+                <li><strong>Edge AI 실시간 추론</strong>: 네트워크 지연 및 공장 보안 이슈 해결을 위해 모델을 ONNX / TensorRT로 경량화하여 에지 디바이스 탑재</li>
+                <li><strong>모바일 현장 피드백 루프</strong>: 작업자 조치 결과를 재학습 데이터로 자동 환류</li>
+              </ul>
+            </div>
+
+            <div class="card purple" style="border-top:5px solid var(--purple);">
+              <span class="card-tag">PHASE 03 · 장기 (자율형 스마트 팩토리)</span>
+              <div class="card-title">ERP/MES 연동 자동 발주 및 디지털 트윈 확장</div>
+              <ul style="margin-top:8px;">
+                <li><strong>ERP / MES / SCM 완전 연동</strong>: 잔여 수명(RUL) 임계 도달 시 예비 부품 자동 발주 및 정비 작업 지시서(Work Order) 자동 발행</li>
+                <li><strong>3D 디지털 트윈(Digital Twin)</strong>: 가상 공장 환경에 설비별 건전성 지수와 열화 시뮬레이션을 연동</li>
+                <li><strong>자율 공정 스케줄링</strong>: 설비 수명과 납기를 동시 고려한 생산 라인 자율 제어</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>8. 향후 발전 방향</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: 9. 팀 역할 분담 및 협업 계획 -->
+      <section class="slide" data-notes="마지막으로 5인 팀 역할 분담입니다. PM/기획, 데이터 엔지니어링, 비지도 이상 탐지 모델링, 고장 분류·RUL·XAI 모델링, 그리고 백엔드·RAG·대시보드 설계로 역할을 명확히 분담하였으며, 전원이 문제 정의와 도메인-기술 정합성 검증에 함께 참여했습니다. 감사합니다.">
+        <div class="slide-top">
+          <div>
+            <div class="slide-kicker">09 · TEAM ROLES &amp; COLLABORATION</div>
+            <h2 class="slide-title">팀 역할 분담 (5인 기준) 및 협업 원칙</h2>
+          </div>
+          <span class="slide-page-badge">Slide 10 / 10</span>
+        </div>
+
+        <div class="slide-body">
+          <table class="slide-table">
+            <thead>
+              <tr>
+                <th style="width:18%;">담당자 (역할)</th>
+                <th style="width:25%;">주요 담당 영역</th>
+                <th style="width:57%;">세부 기여 및 수행 내용</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>팀원 1</strong><br /><span class="chip blue">PM / 서비스 기획</span></td>
+                <td><strong>프로젝트 총괄 및 도메인 리서치</strong></td>
+                <td>• 스마트 팩토리 산업 현황 및 중소 제조 현장 페인포인트 심층 조사<br />• 서비스 요구사항 정의, 타겟 페르소나·시나리오 설계, 발표 스토리라인 총괄</td>
+              </tr>
+              <tr>
+                <td><strong>팀원 2</strong><br /><span class="chip blue">Data Engineer</span></td>
+                <td><strong>센서 데이터 수집 및 신호 전처리</strong></td>
+                <td>• 다변량 회전 설비 데이터셋(진동·음향·온도) 수집, 결측/노이즈 정제<br />• 슬라이딩 윈도우 분할, 시간 통계 피처 및 FFT/STFT 주파수 특징 추출 파이프라인 구축</td>
+              </tr>
+              <tr>
+                <td><strong>팀원 3</strong><br /><span class="chip blue">AI Modeling 1</span></td>
+                <td><strong>비지도 시계열 이상 탐지 모델링</strong></td>
+                <td>• 정상 운전 데이터 기반 <span class="chip">LSTM-Autoencoder</span> / <span class="chip">Anomaly Transformer</span> 설계<br />• 복원 오차 기반 설비 건전성 지수(Health Index) 산출 및 동적 임계치 최적화</td>
+              </tr>
+              <tr>
+                <td><strong>팀원 4</strong><br /><span class="chip blue">AI Modeling 2</span></td>
+                <td><strong>고장 분류, RUL 예측 및 XAI</strong></td>
+                <td>• <span class="chip">1D-CNN</span> + <span class="chip">LightGBM</span> 고장 유형 분류 및 <span class="chip">Bi-LSTM</span> 잔여 수명 예측 설계<br />• <span class="chip">SHAP</span> 기반 고장 판단 근거(핵심 센서 채널·주파수 대역 기여도) 추출 로직 설계</td>
+              </tr>
+              <tr>
+                <td><strong>팀원 5</strong><br /><span class="chip blue">Backend / RAG &amp; UI</span></td>
+                <td><strong>시스템 아키텍처 및 RAG·대시보드</strong></td>
+                <td>• 전체 시스템 아키텍처 및 실시간 데이터 서빙 구조(FastAPI / InfluxDB) 설계<br />• 설비 매뉴얼 기반 RAG 정비 코파일럿 및 실시간 관제 대시보드 UI/UX 프로토타입 설계</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="card dark" style="padding:14px 22px; flex-direction:row; justify-content:space-between; align-items:center;">
+            <div style="font-size:14px;">
+              <strong style="color:#38bdf8;">🤝 팀 협업 핵심 원칙</strong> :
+              ① 문제 정의·타겟 분석·AI 기술 선정 전 과정 5인 전원 참여 &nbsp;|&nbsp;
+              ② 현장 사용성(기획/UI)과 실제 데이터 구현성(Data/AI) 간 주간 교차 검증
+            </div>
+            <span style="font-weight:800; color:#2dd4bf; font-size:14px;">Thank You! Q&amp;A</span>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span>FactoryGuard AI — AI Smart Factory</span>
+          <span>9. 팀 역할 분담 및 협업 계획</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Speaker Notes Drawer -->
+  <aside class="notes-panel" id="notesPanel">
+    <div class="notes-label">🎤 발표자 대본 가이드 (Speaker Notes)</div>
+    <div class="notes-content" id="notesContent"></div>
+  </aside>
+
+  <!-- Bottom Control Bar -->
+  <nav class="control-bar">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="ctrl-group">
+      <button class="ctrl-btn" onclick="prevSlide()" title="이전 슬라이드 (←)">◀ 이전</button>
+      <select class="slide-select" id="slideSelect" onchange="goToSlide(Number(this.value))">
+        <option value="0">01. 표지 — FactoryGuard AI</option>
+        <option value="1">02. 문제 정의 — 산업 현황 및 배경</option>
+        <option value="2">03. 해결 과제 &amp; 주제 선택 이유</option>
+        <option value="3">04. 타겟 사용자 및 니즈 분석</option>
+        <option value="4">05. 서비스 개요 및 차별점</option>
+        <option value="5">06. AI 기술 적용 방안</option>
+        <option value="6">07. 예상 시스템 구성 (아키텍처)</option>
+        <option value="7">08. 서비스 기대 효과</option>
+        <option value="8">09. 향후 발전 방향 (Roadmap)</option>
+        <option value="9">10. 팀 역할 분담 (5인 기준)</option>
+      </select>
+      <button class="ctrl-btn" onclick="nextSlide()" title="다음 슬라이드 (→ / Space)">다음 ▶</button>
+      <span id="slideCounter" style="font-size:13px; font-weight:700; margin-left:6px; color:#94a3b8;">1 / 10</span>
+    </div>
+
+    <div class="ctrl-group">
+      <button class="ctrl-btn" onclick="toggleNotes()" id="notesBtn">🎤 발표 대본 보기 (N)</button>
+      <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ 전체화면 (F)</button>
+      <button class="ctrl-btn primary" onclick="window.print()">🖨️ PDF 슬라이드 저장</button>
+    </div>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const canvas = document.getElementById('slideCanvas');
+    const counter = document.getElementById('slideCounter');
+    const select = document.getElementById('slideSelect');
+    const progressFill = document.getElementById('progressFill');
+    const notesPanel = document.getElementById('notesPanel');
+    const notesContent = document.getElementById('notesContent');
+    let current = 0;
+
+    function fitSlide() {
+      const vw = window.innerWidth - 56;
+      const vh = window.innerHeight - 58 - 36;
+      const scale = Math.min(vw / 1280, vh / 720);
+      canvas.style.transform = `scale(${Math.max(0.2, scale)})`;
+    }
+
+    function updateSlide() {
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      select.value = String(current);
+      progressFill.style.width = `${((current + 1) / slides.length) * 100}%`;
+      notesContent.textContent = slides[current].getAttribute('data-notes') || '';
+    }
+
+    function goToSlide(idx) {
+      current = Math.max(0, Math.min(slides.length - 1, idx));
+      updateSlide();
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+      if (current > 0) goToSlide(current - 1);
+    }
+
+    function toggleNotes() {
+      notesPanel.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    window.addEventListener('resize', fitSlide);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(slides.length - 1);
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    fitSlide();
+    updateSlide();
+  </script>
+</body>
+</html>
